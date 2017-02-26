@@ -1,4 +1,4 @@
-The Button Request Routes
+BThe Button Request Routes
 
 Request from URL with parameters like this.  This example creates a new button with description "MyNewButton" in the group with HashID WkByaXYYXZj7B and a timeout period of 15 minutes.
 	
@@ -15,8 +15,8 @@ Routes:
 
 /new-group:			Creates a new group from a user
 	name: 			nickname for group 	
-	creator: 		HashID of group creator (first member)
-	return: 		UUID string for group
+	creator: 		UUID of group creator (first member)
+	return: 		HashID string for group
 
 /new-button:		Creates a new button in a group
 	label:  		button description string	
