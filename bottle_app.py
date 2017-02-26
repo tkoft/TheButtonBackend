@@ -6,7 +6,7 @@ To run on a pythonanywhere bottle instance.
 
 (c) gary chen 2017
 '''
-from bottle import default_app, request, route, run
+from bottle import default_app, request, route
 from hashids import Hashids
 hashids = Hashids("salt lolololol")
 import json, uuid, os.path
@@ -119,7 +119,6 @@ def deleteButton(group, button):
 def joinGroupHandler():
     return joinGroup(request.query.group, request.query.user)
 def joinGroup(group, user):
-    print("Looking for " + str(group) + " in " + str(groups.keys())+"\n")
     if group in groups:
         groups[group]['members'][user] = users[user]
         saveGroupJSON(group)
@@ -140,14 +139,14 @@ def leaveGroup(group, user):
                 res += ":group_deleted"
             saveGroupJSON(group)
             return res
-        return "error_button_not_found"
+        return "error_user_not_found"
     return "error_group_not_found"
 
 @route('/get-all-json')
 def getAllJSON():
-    res = "ALL:"
+    res = "ALL:  "
     for key in groups:
-        res += json.dumps(groups[key])
+        res += key + ":  " + json.dumps(groups[key]) + "\n\n"
     return res
 
 @route('/get-group-json')
@@ -164,7 +163,7 @@ def getUsersJSON():
 
 @route('/get-active-users')
 def getActiveUsersHandler():
-    return getActiveUsers(request.query.button, request.query.time)
+    return getActiveUsers(request.query.button, request.query.button, request.query.time)
 def getActiveUsers(group, button, ctime):
     lastTime = ctime;
     res = {}
@@ -175,7 +174,7 @@ def getActiveUsers(group, button, ctime):
         else:
             res[pushesList[i]['user']] = users[pushesList[i]['user']]
             lastTime = pushesList[i]['time']
-    return res
+    return json.dumps(res)
 
 ### TEST CODE ###
 if __name__=="__main__":
