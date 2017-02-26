@@ -24,7 +24,6 @@ if os.path.isfile("userlist.json"):
 for filename in os.listdir(os.getcwd()+"/groupsJSON"):
     if os.path.isfile(os.getcwd()+"/groupsJSON/"+filename):
         myfile = open(os.getcwd()+"/groupsJSON/"+filename, 'r')
-        print(filename)
         groups[str.split(filename, '.')[0]] = json.load(myfile)
         myfile.close()
 
@@ -97,8 +96,8 @@ def newPushHandler():
     return newPush(request.query.group, request.query.button, request.query.user, request.query.time)
 def newPush(group, button, user, time):
     if group in groups:
-        if button in group.buttons:
-            groups[group].buttons[button].pushes.append({"user":user, "time":time})
+        if button in groups[group]['buttons']:
+            groups[group]['buttons'][button]['pushes'].append({"user":user, "time":time})
             saveGroupJSON(group)
             return "push_success"
         return "error_button_not_found"
@@ -109,8 +108,8 @@ def deleteButtonHandler():
     return deleteButton(request.query.group, request.query.button)
 def deleteButton(group, button):
     if group in groups:
-        if button in group.buttons:
-            del groups[group].buttons[button]
+        if button in groups[group]['buttons']:
+            del groups[group]['buttons'][button]
             saveGroupJSON(group)
             return "delete_button_success"
         return "error_button_not_found"
@@ -120,12 +119,11 @@ def deleteButton(group, button):
 def joinGroupHandler():
     return joinGroup(request.query.group, request.query.user)
 def joinGroup(group, user):
+    print("Looking for " + str(group) + " in " + str(groups.keys())+"\n")
     if group in groups:
-        if user in group.users:
-            groups[group].users.append(user)
-            saveGroupJSON(group)
-            return "join_group_success"
-        return "error_button_not_found"
+        groups[group]['members'][user] = users[user]
+        saveGroupJSON(group)
+        return "join_group_success"
     return "error_group_not_found"
 
 
@@ -134,7 +132,7 @@ def leaveGroupHandler():
     return leaveGroup(request.query.group, request.query.user)
 def leaveGroup(group, user):
     if group in groups:
-        if user in group.users:
+        if user in group['members']:
             groups[group].users.remove(user)
             res = "leave_group_success"
             if len(groups[group].users) == 0:
@@ -167,24 +165,39 @@ def getUsersJSON():
 @route('/get-active-users')
 def getActiveUsersHandler():
     return getActiveUsers(request.query.button, request.query.time)
-def getActiveUsers(button, ctime):
+def getActiveUsers(group, button, ctime):
     lastTime = ctime;
     res = {}
-    for i in range(len(button.pushes), -1, -1):
-        if lastTime - button.pushes[i] >= button.timeout:
+    pushesList = groups[group]['buttons'][button]['pushes']
+    for i in range(len(pushesList)-1, -1, -1):
+        if lastTime - pushesList[i]['time'] >= groups[group]['buttons'][button]['timeout']:
             break
         else:
-            res[button.pushes[i].user] = users[button.pushes[i].user]
+            res[pushesList[i]['user']] = users[pushesList[i]['user']]
+            lastTime = pushesList[i]['time']
     return res
 
 ### TEST CODE ###
 if __name__=="__main__":
     garyID = newUser("Gary")
     lalalaID = newGroup("lalala", garyID)
-    newButton("dinnertime!", lalalaID, 300)
-    print(getAllJSON())
+    josephID = newUser("Joseph")
+    dinnerID = newButton("dinner", lalalaID, 400)
+    newPush(lalalaID, dinnerID, garyID, 1600)
 
-    #run(host='localhost', port=8080, debug=True)
+    print(joinGroup(lalalaID, josephID))
+    davidID = newUser("David")
+    joinGroup(lalalaID, davidID)
+    gymID = newButton("gym", lalalaID, 200)
+    newPush(lalalaID, dinnerID, davidID, 1700)
+
+    newPush(lalalaID, gymID, davidID, 1400)
+    newPush(lalalaID, gymID, garyID, 1600)
+    newPush(lalalaID, gymID, josephID, 1700)
+
+    print(getActiveUsers(lalalaID, gymID, 1800))
+
+
 
 application = default_app()
 
