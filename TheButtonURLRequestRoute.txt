@@ -1,4 +1,4 @@
-BThe Button Request Routes
+The Button Request Routes
 
 Request from URL with parameters like this.  This example creates a new button with description "MyNewButton" in the group with HashID WkByaXYYXZj7B and a timeout period of 15 minutes.
 	
